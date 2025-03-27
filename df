@@ -1,0 +1,23 @@
+[33mcommit 812a2561e7063dbbc8c136be38be5ba71ace0310[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: edouard-torres <edouard.torres05@gmail.com>
+Date:   Thu Mar 27 14:36:43 2025 +0100
+
+    Added main.c .gitignore
+
+[33mcommit 2fd0bdc9dee10d4d3702b09158f413ff4ae15bfd[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: tomyj <tom.garrido@efrei.net>
+Date:   Thu Mar 27 14:21:53 2025 +0100
+
+    Premier commit (TEST)
+
+[33mcommit 08b3cb0f1723455f9d4ef141b6b1fc2c6814ad51[m
+Author: tomyj <tom.garrido@efrei.net>
+Date:   Thu Mar 27 14:21:37 2025 +0100
+
+    Premier commit (TEST)
+
+[33mcommit 31c5c7d0042c8c20e03861c88193494ff5639674[m
+Author: tomyjoli <tom.garrido@efrei.net>
+Date:   Thu Mar 20 14:53:45 2025 +0100
+
+    Initial commit
