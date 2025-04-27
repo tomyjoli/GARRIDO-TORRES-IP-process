@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "bmp8.h"
+#include " bmp8.c"
+
 
 void appliquer_filtre(t_bmp8 *img);
 
@@ -76,9 +78,9 @@ void appliquer_filtre(t_bmp8 *img) {
     int choix_filtre;
     while (1) {
         printf("\n--- Menu des filtres ---\n");
-        printf("1. Négatif\n");
-        printf("2. Luminosité\n");
-        printf("3. Binarisation\n");
+        printf("1. Appliquer un négatif\n");
+        printf("2. Modifier la luminosité\n");
+        printf("3. Binariser (seuillage)\n");
         printf("4. Retour au menu principal\n");
         printf(">>> Votre choix : ");
 
