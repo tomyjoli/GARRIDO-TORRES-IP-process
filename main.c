@@ -1,22 +1,56 @@
-#include "quotes.h"
-#include "quotes.c"
-#include <time.h>
+#include <stdio.h>
+#include "bmp8.h"
+
 
 int main() {
-    char * quotes[MAX_QUOTES] = {
-            "Programmer - An organism that turns caffeine into code",
-            "Why do programmers prefer dark mode? Because light attracts bugs.",
-            "If debugging is the process of removing software bugs, then programming must be the process of putting them in.",
-            "I don't always test my code, but when I do, I do it in production.",
-            "Why do programmers always mix up Christmas and Halloween? Because Oct 31 == Dec 25!",
-            "Why did the programmer quit his job? Because he didn't get arrays.",
-            "Why do programmers prefer iOS development? Because the Swift.",
-            "Why do programmers prefer dogs over cats? Because dogs have fetch and cats have catch.",
-            "Why do programmers hate nature? It has too many bugs.",
-            "There are only 10 types of people in the world: Those who understand binary and those who don't."
-    };
+    int choix;
+    /** Charger l'image
+    const char *filename = "barbara_gray.bmp";
+    t_bmp8 *img = bmp8_loadImage(filename);
+    if (img) {
+        // Afficher les informations de l'image
+        printf("Image chargée avec succès:\n");
+        printf("Largeur: %u\n", img->width);
+        printf("Hauteur: %u\n", img->height);
+        printf("Profondeur de couleur: %u\n", img->colorDepth);
+        printf("Taille des données: %u\n", img->dataSize);
 
-    srand(time(NULL));
-    print_random_quote(quotes);
-    return 0;
+    }
+    */
+
+    while (1) {
+        printf("Veuillez choisir une option :\n");
+        printf("    1. Ouvrir une image\n");
+        printf("    2. Sauvegarder une image\n");
+        printf("    3. Appliquer un filtre\n");
+        printf("    4. Afficher les informations de l'image\n");
+        printf("    5. Quitter\n");
+        printf(">>> Votre choix : ");
+
+        if (scanf("%d", &choix) != 1) {
+            while (getchar() != '\n');
+            printf("Entrée invalide. Veuillez réessayer.\n");
+            continue;
+        }
+    }
+
+    switch (choix) {
+        case 1:
+            printf("Vous avez choisi : %d\n", choix);
+            break;
+        case 2:
+            printf("Vous avez choisi : %d\n", choix);
+            break;
+        case 3:
+            printf("Vous avez choisi : %d\n", choix);
+            break;
+        case 4:
+            printf("Vous avez choisi : %d\n", choix);
+            break;
+        case 5:
+            printf("Au revoir !\n");
+            exit(0);
+        default:
+            printf("Option invalide. Veuillez reessayer.\n");
+    }
 }
