@@ -1,56 +1,119 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "bmp8.h"
 
+void appliquer_filtre(t_bmp8 *img);
 
 int main() {
+    t_bmp8 *img = NULL;
     int choix;
-    /** Charger l'image
-    const char *filename = "barbara_gray.bmp";
-    t_bmp8 *img = bmp8_loadImage(filename);
-    if (img) {
-        // Afficher les informations de l'image
-        printf("Image chargée avec succès:\n");
-        printf("Largeur: %u\n", img->width);
-        printf("Hauteur: %u\n", img->height);
-        printf("Profondeur de couleur: %u\n", img->colorDepth);
-        printf("Taille des données: %u\n", img->dataSize);
-
-    }
-    */
 
     while (1) {
-        printf("Veuillez choisir une option :\n");
-        printf("    1. Ouvrir une image\n");
-        printf("    2. Sauvegarder une image\n");
-        printf("    3. Appliquer un filtre\n");
-        printf("    4. Afficher les informations de l'image\n");
-        printf("    5. Quitter\n");
+        printf("\n========== Menu principal ==========\n");
+        printf("1. Ouvrir une image\n");
+        printf("2. Appliquer un filtre\n");
+        printf("3. Sauvegarder l'image\n");
+        printf("4. Afficher les informations de l'image\n");
+        printf("5. Quitter\n");
         printf(">>> Votre choix : ");
 
         if (scanf("%d", &choix) != 1) {
             while (getchar() != '\n');
-            printf("Entrée invalide. Veuillez réessayer.\n");
+            printf("Entrée invalide. Réessayez.\n");
             continue;
+        }
+
+        if (choix == 5) {
+            printf("Fin du programme.\n");
+            break;
+        }
+
+        switch (choix) {
+            case 1: {
+                char chemin[256];
+                printf("Chemin de l'image : ");
+                scanf("%s", chemin);
+                if (img) bmp8_free(img); // Libérer ancienne image
+                img = bmp8_loadImage(chemin);
+                if (img) printf("Image chargée avec succès !\n");
+                break;
+            }
+            case 2:
+                if (img) {
+                    appliquer_filtre(img);
+                } else {
+                    printf("Veuillez ouvrir une image d'abord.\n");
+                }
+                break;
+            case 3:
+                if (img) {
+                    char chemin[256];
+                    printf("Chemin pour sauvegarder l'image : ");
+                    scanf("%s", chemin);
+                    bmp8_saveImage(chemin, img);
+                    printf("Image sauvegardée !\n");
+                } else {
+                    printf("Veuillez ouvrir une image d'abord.\n");
+                }
+                break;
+            case 4:
+                if (img) {
+                    bmp8_printInfo(img);
+                } else {
+                    printf("Veuillez ouvrir une image d'abord.\n");
+                }
+                break;
+            default:
+                printf("Option invalide. Réessayez.\n");
         }
     }
 
-    switch (choix) {
-        case 1:
-            printf("Vous avez choisi : %d\n", choix);
-            break;
-        case 2:
-            printf("Vous avez choisi : %d\n", choix);
-            break;
-        case 3:
-            printf("Vous avez choisi : %d\n", choix);
-            break;
-        case 4:
-            printf("Vous avez choisi : %d\n", choix);
-            break;
-        case 5:
-            printf("Au revoir !\n");
-            exit(0);
-        default:
-            printf("Option invalide. Veuillez reessayer.\n");
+    if (img) bmp8_free(img);
+    return 0;
+}
+
+void appliquer_filtre(t_bmp8 *img) {
+    int choix_filtre;
+    while (1) {
+        printf("\n--- Menu des filtres ---\n");
+        printf("1. Négatif\n");
+        printf("2. Luminosité\n");
+        printf("3. Binarisation\n");
+        printf("4. Retour au menu principal\n");
+        printf(">>> Votre choix : ");
+
+        if (scanf("%d", &choix_filtre) != 1) {
+            while (getchar() != '\n');
+            printf("Entrée invalide. Réessayez.\n");
+            continue;
+        }
+
+        switch (choix_filtre) {
+            case 1:
+                bmp8_negative(img);
+                printf("Négatif appliqué !\n");
+                break;
+            case 2: {
+                int valeur;
+                printf("Valeur de luminosité (+/-) : ");
+                scanf("%d", &valeur);
+                bmp8_brightness(img, valeur);
+                printf("Luminosité ajustée !\n");
+                break;
+            }
+            case 3: {
+                int seuil;
+                printf("Seuil (0-255) : ");
+                scanf("%d", &seuil);
+                bmp8_threshold(img, seuil);
+                printf("Binarisation effectuée !\n");
+                break;
+            }
+            case 4:
+                printf("Retour au menu principal.\n");
+                return;
+            default:
+                printf("Option invalide. Réessayez.\n");
+        }
     }
 }

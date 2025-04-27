@@ -1,12 +1,6 @@
-
-
-
-
-#ifndef BMP8_H // Gardien d'inclusion - Début
+#ifndef BMP8_H
 #define BMP8_H
 
-
-// Définition de la structure
 typedef struct {
     unsigned char header[54];
     unsigned char colorTable[1024];
@@ -17,15 +11,12 @@ typedef struct {
     unsigned int dataSize;
 } t_bmp8;
 
-
 t_bmp8 *bmp8_loadImage(const char *filename);
+void bmp8_saveImage(const char *filename, t_bmp8 *img);
+void bmp8_free(t_bmp8 *img);
+void bmp8_printInfo(t_bmp8 *img);
+void bmp8_negative(t_bmp8 *img);
+void bmp8_brightness(t_bmp8 *img, int value);
+void bmp8_threshold(t_bmp8 *img, int threshold);
 
-
-void bmp8_freeImage(t_bmp8 *image);
-
-#endif // BMP8_H - Gardien d'inclusion - Fin
-
-#ifndef GARRIDO_TORRES_IP_PROCESS_BMP8_H
-#define GARRIDO_TORRES_IP_PROCESS_BMP8_H
-
-#endif //GARRIDO_TORRES_IP_PROCESS_BMP8_H
+#endif

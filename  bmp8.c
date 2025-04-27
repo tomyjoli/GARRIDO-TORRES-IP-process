@@ -2,83 +2,98 @@
 #include <stdlib.h>
 #include "bmp8.h"
 
-// En supposant que le fichier image BMP est ouvert et
-// que l'en-tête est stocké dans le tableau header
-//unsigned char header[54];
-// On sait que la largeur de l'image est stockée à l'offset 18 de l'en-tête
-//unsigned int width = *(unsigned int *)&header[18];
-
-
-t_bmp8 * bmp8_loadImage(const char * filename){
-    FILE*file=fopen(filename,"rb");
-    if (!file){
-        perror("impossible d'ouvrir le fichier");
-        return NULL;
-    }
-    unsigned char header[54];
-    if (fread(header, sizeof(unsigned char), 54, file) != 54) {
-        perror("Erreur lors de la lecture de l'en-tête");
-        fclose(file);
-        return NULL;
-    }
-    unsigned short colorDepth = *(unsigned short *)&header[28];
-    if (colorDepth != 8) {
-        fprintf(stderr, "L'image n'a pas une profondeur de 8 bits\n");
-        fclose(file);
+t_bmp8 *bmp8_loadImage(const char *filename) {
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        perror("Erreur ouverture fichier");
         return NULL;
     }
 
-    // Extraire les informations de l'en-tête
-    unsigned int width = *(unsigned int *)&header[18];
-    unsigned int height = *(unsigned int *)&header[22];
-    unsigned int dataOffset = *(unsigned int *)&header[10];
-    unsigned int dataSize = *(unsigned int *)&header[34];
-
-    // Allouer de la mémoire pour la structure de l'image
     t_bmp8 *img = (t_bmp8 *)malloc(sizeof(t_bmp8));
     if (!img) {
-        perror("Impossible d'allouer de la mémoire pour l'image");
+        perror("Erreur malloc image");
         fclose(file);
         return NULL;
     }
 
-    // Copier les champs de l'en-tête dans la structure
-    for (int i = 0; i < 54; i++) {
-        img->header[i] = header[i];
+    fread(img->header, sizeof(unsigned char), 54, file);
+
+    img->width = *(unsigned int *)&img->header[18];
+    img->height = *(unsigned int *)&img->header[22];
+    img->colorDepth = *(unsigned short *)&img->header[28];
+    img->dataSize = *(unsigned int *)&img->header[34];
+
+    if (img->colorDepth != 8) {
+        fprintf(stderr, "Erreur : image n'est pas en 8 bits.\n");
+        free(img);
+        fclose(file);
+        return NULL;
     }
 
-    img->width = width;
-    img->height = height;
-    img->colorDepth = colorDepth;
-    img->dataSize = dataSize;
+    fread(img->colorTable, sizeof(unsigned char), 1024, file);
 
-    // Allouer de la mémoire pour les données de l'image
-    img->data = (unsigned char *)malloc(dataSize);
+    img->data = (unsigned char *)malloc(img->dataSize);
     if (!img->data) {
-        perror("Impossible d'allouer de la mémoire pour les données de l'image");
+        perror("Erreur malloc data");
         free(img);
         fclose(file);
         return NULL;
     }
 
-    // Lire les données de l'image
-    fseek(file, dataOffset, SEEK_SET);
-    if (fread(img->data, sizeof(unsigned char), dataSize, file) != dataSize) {
-        perror("Erreur lors de la lecture des données de l'image");
-        free(img->data);
-        free(img);
-        fclose(file);
-        return NULL;
-    }
+    fread(img->data, sizeof(unsigned char), img->dataSize, file);
 
-    // Fermer le fichier
     fclose(file);
     return img;
+}
 
+void bmp8_saveImage(const char *filename, t_bmp8 *img) {
+    FILE *file = fopen(filename, "wb");
+    if (!file) {
+        perror("Erreur ouverture fichier pour écriture");
+        return;
     }
 
+    fwrite(img->header, sizeof(unsigned char), 54, file);
+    fwrite(img->colorTable, sizeof(unsigned char), 1024, file);
+    fwrite(img->data, sizeof(unsigned char), img->dataSize, file);
 
+    fclose(file);
+}
 
-//void bmp8_saveImage(const char * filename, t_bmp8 * img);
-//void bmp8_free(t_bmp8 * img);
-//void bmp8_printInfo(t_bmp8 * img);
+void bmp8_free(t_bmp8 *img) {
+    if (img) {
+        free(img->data);
+        free(img);
+    }
+}
+
+void bmp8_printInfo(t_bmp8 *img) {
+    if (img) {
+        printf("Infos de l'image :\n");
+        printf("Largeur : %u pixels\n", img->width);
+        printf("Hauteur : %u pixels\n", img->height);
+        printf("Profondeur de couleur : %u bits\n", img->colorDepth);
+        printf("Taille des données : %u octets\n", img->dataSize);
+    }
+}
+
+void bmp8_negative(t_bmp8 *img) {
+    for (unsigned int i = 0; i < img->dataSize; i++) {
+        img->data[i] = 255 - img->data[i];
+    }
+}
+
+void bmp8_brightness(t_bmp8 *img, int value) {
+    for (unsigned int i = 0; i < img->dataSize; i++) {
+        int pixel = img->data[i] + value;
+        if (pixel > 255) pixel = 255;
+        if (pixel < 0) pixel = 0;
+        img->data[i] = (unsigned char)pixel;
+    }
+}
+
+void bmp8_threshold(t_bmp8 *img, int threshold) {
+    for (unsigned int i = 0; i < img->dataSize; i++) {
+        img->data[i] = (img->data[i] >= threshold) ? 255 : 0;
+    }
+}
