@@ -583,7 +583,7 @@ void bmp24_equalize(t_bmp24 *img) {
         return;
     }
 
-    // Allouer de la mémoire pour l'image YUV temporaire
+    //Alloue de la mémoire pour l'image YUV temporaire
     t_yuv **yuv_image_data = (t_yuv **)malloc((size_t)height_abs * sizeof(t_yuv *));
     if (!yuv_image_data) {
         perror("bmp24_equalize: Erreur malloc pour les lignes YUV");
@@ -599,14 +599,14 @@ void bmp24_equalize(t_bmp24 *img) {
         }
     }
 
-    // Étape 1: Convertir RGB en YUV
+    //Convertir RGB en YUV
     for (int y = 0; y < height_abs; ++y) {
         for (int x = 0; x < width; ++x) {
             yuv_image_data[y][x] = convert_rgb_to_yuv(img->data[y][x]);
         }
     }
 
-    // Étape 2: Calculer l'histogramme de la composante Y
+    //Calculer l'histogramme de la composante Y
     unsigned int histogram_y[256] = {0};
     for (int y = 0; y < height_abs; ++y) {
         for (int x = 0; x < width; ++x) {
@@ -615,7 +615,7 @@ void bmp24_equalize(t_bmp24 *img) {
         }
     }
 
-    // Étape 3: Calculer l'histogramme cumulé (CDF) pour Y
+    //Calculer l'histogramme cumulé (CDF) pour Y
     unsigned int cdf_y[256] = {0};
     cdf_y[0] = histogram_y[0];
     for (int i = 1; i < 256; ++i) {
@@ -653,7 +653,7 @@ void bmp24_equalize(t_bmp24 *img) {
         }
     }
 
-    // Étape 4: Appliquer l'égalisation à la composante Y
+    // Appliquer l'égalisation à la composante Y
     for (int y = 0; y < height_abs; ++y) {
         for (int x = 0; x < width; ++x) {
             int original_y_int = clamp_pixel_value((int)roundf(yuv_image_data[y][x].y));
@@ -661,7 +661,7 @@ void bmp24_equalize(t_bmp24 *img) {
         }
     }
 
-    // Étape 5: Convertir l'image YUV (avec Y modifié) de nouveau en RGB
+    // Convertir l'image YUV (avec Y modifié) de nouveau en RGB
     for (int y = 0; y < height_abs; ++y) {
         for (int x = 0; x < width; ++x) {
             img->data[y][x] = convert_yuv_to_rgb(yuv_image_data[y][x]);

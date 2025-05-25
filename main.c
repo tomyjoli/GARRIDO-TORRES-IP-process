@@ -15,18 +15,25 @@ void vider_buffer_stdin() {
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
+// Fonction principale du programme
+// Gère le menu principal, le chargement/sauvegarde d'images et l'application des filtres
 int main() {
-    t_bmp8 *img8 = NULL;
-    t_bmp24 *img24 = NULL;
-    int current_image_type = 0;
-    int choix;
-    char chemin[FILENAME_MAX];
+    t_bmp8 *img8 = NULL; // Pointeur pour image 8-bits
+    t_bmp24 *img24 = NULL; // Pointeur pour image 24-bits
+    int current_image_type = 0; // 0=aucune, 8=8bits, 24=24bits
+    int choix; // Stockage du choix de menu
+    char chemin[FILENAME_MAX]; // Chemin des fichiers
 
+    // Message de bienvenue des familles
     printf("Bienvenue dans le programme de Traitement d'Images en C !\n");
     printf("Projet TI202 - EFREI Paris \n");
 
+    // Boucle principale du programme
     while (1) {
+        // Affichage du menu principal
         printf("\n========== Menu principal ==========\n");
+
+        // Affiche l'image actuellement chargée
         if (current_image_type == 8 && img8) {
             printf("Image 8-bits chargée (W:%u, H:%u).\n", img8->width, img8->height);
         }
@@ -36,6 +43,8 @@ int main() {
         else {
             printf("Aucune image chargée.\n");
         }
+
+        // Options du menu principal
         printf("-----------------------------------\n");
         printf("1. Ouvrir une image 8-bits (N&B)\n");
         printf("2. Ouvrir une image 24-bits (Couleur)\n");
@@ -43,6 +52,7 @@ int main() {
         printf("4. Sauvegarder l'image\n");
         printf("5. Afficher les informations de l'image\n");
 
+        // Options spécifiques selon le type d'image chargée (8-bits ou 24-bits)
         if (current_image_type == 8 && img8) {
             printf("--- Options BMP 8-bits ---\n");
             printf("  7. Afficher l'histogramme (8-bits)\n");
@@ -56,6 +66,7 @@ int main() {
         printf("10. Quitter\n");
         printf(">>> Votre choix : ");
 
+        // Gestion de l'entrée utilisateur
         if (scanf("%d", &choix) != 1) {
             printf("Entrée invalide. Veuillez entrer un nombre.\n");
             vider_buffer_stdin();
@@ -63,11 +74,13 @@ int main() {
         }
         vider_buffer_stdin();
 
+        // fin du programme
         if (choix == 10) {
             printf("Fin du programme.\n");
             break;
         }
 
+        // Traitement des choix de menu
         switch (choix) {
             case 1: // Ouvrir BMP8
                 printf("Chemin de l'image 8-bits : ");
@@ -181,11 +194,13 @@ void menu_appliquer_filtre_bmp8(t_bmp8 *img) {
     int choix_filtre;
     int valeur_param;
 
+    // Vérification de l'image
     if (!img) {
         printf("Erreur : Aucune image 8-bits pour appliquer un filtre.\n");
         return;
     }
 
+    // Boucle du menu des filtres 8-bits
     while(1) {
         printf("\n--- Menu des filtres 8-bits ---\n");
         printf("1. Négatif\n");
@@ -199,6 +214,7 @@ void menu_appliquer_filtre_bmp8(t_bmp8 *img) {
         printf("9. Retour au menu principal\n");
         printf(">>> Votre choix : ");
 
+        // Gestion de l'entrée utilisateur
         if (scanf("%d", &choix_filtre) != 1) {
             printf("Entrée de filtre invalide. Veuillez entrer un nombre.\n");
             vider_buffer_stdin();
@@ -206,11 +222,13 @@ void menu_appliquer_filtre_bmp8(t_bmp8 *img) {
         }
         vider_buffer_stdin();
 
+        //Retour au menu principal
         if (choix_filtre == 9) {
             printf("Retour au menu principal.\n");
             return;
         }
 
+        // Application du filtre sélectionné
         switch (choix_filtre) {
             case 1:
                 bmp8_negative(img);
@@ -255,11 +273,13 @@ void menu_appliquer_filtre_bmp24(t_bmp24 *img) {
     int choix_filtre;
     int valeur_param;
 
+    // Vérification des filtres
     if (!img) {
         printf("Erreur : Aucune image 24-bits pour appliquer un filtre.\n");
         return;
     }
 
+    // Boucle du menu des filtres 24-bits
     while(1) {
         printf("\n--- Menu des filtres 24-bits ---\n");
         printf("1. Négatif\n");
@@ -274,6 +294,7 @@ void menu_appliquer_filtre_bmp24(t_bmp24 *img) {
         printf("10. Retour au menu principal\n");
         printf(">>> Votre choix : ");
 
+        // Gestion de l'entrée utilisateur
         if (scanf("%d", &choix_filtre) != 1) {
             printf("Entrée de filtre invalide. Veuillez entrer un nombre.\n");
             vider_buffer_stdin();
@@ -281,11 +302,13 @@ void menu_appliquer_filtre_bmp24(t_bmp24 *img) {
         }
         vider_buffer_stdin();
 
+        //Retour au menu principal
         if (choix_filtre == 10) {
             printf("Retour au menu principal.\n");
             return;
         }
 
+        // Application du filtre sélectionné
         switch (choix_filtre) {
             case 1:
                 bmp24_negative(img);
