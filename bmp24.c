@@ -1,11 +1,10 @@
-#include "bmp24.h" // DOIT être inclus en premier
+#include "bmp24.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
-#include <string.h> // Pour memcpy, memset
-#include <stdio.h>  // Pour perror, fprintf, stderr, FILE, fopen, fclose, fread, fwrite, fseek
-#include <stdlib.h> // Pour malloc, free, abs, calloc
-#include <math.h>   // Pour roundf
-
-// ----- Fonctions d'Aide pour la Lecture/Écriture Brute -----
+//Fonctions d'Aide pour la Lecture/Écriture
 void file_rawRead (uint32_t position, void * buffer, uint32_t size_element, size_t n_elements, FILE * file) {
     if (!file || !buffer) {
         fprintf(stderr, "file_rawRead: Erreur - Pointeur de fichier ou buffer NULL.\n");
@@ -13,18 +12,12 @@ void file_rawRead (uint32_t position, void * buffer, uint32_t size_element, size
     }
     if (fseek(file, (long)position, SEEK_SET) != 0) {
         perror("file_rawRead: Erreur fseek");
-        // Mettre ferror pour que l'appelant puisse le détecter si nécessaire, ou gérer l'erreur plus agressivement.
-        // Pour cet exemple, on retourne, l'erreur sera probablement détectée plus tard.
         return;
     }
     if (fread(buffer, size_element, n_elements, file) != n_elements) {
         if (feof(file)) {
-            // Ne pas afficher d'erreur si on a juste atteint EOF en lisant des pixels et image_size était 0.
-            // Cependant, pour les headers, c'est une erreur.
-            // Une gestion plus fine serait nécessaire ici si on veut être très précis.
-            // Pour l'instant, on laisse le code appelant vérifier ferror/feof.
-            // fprintf(stderr, "file_rawRead: Fin de fichier atteinte prématurément.\n");
-        } else if (ferror(file)) {
+        }
+        else if (ferror(file)) {
             perror("file_rawRead: Erreur fread");
         }
         // L'appelant doit vérifier ferror(file) ou les données lues si nécessaire.
@@ -45,7 +38,7 @@ void file_rawWrite (uint32_t position, void * buffer, uint32_t size_element, siz
     }
 }
 
-// ----- Fonctions d'Allocation et de Libération (PDF Section 2.3) -----
+// Fonctions d'Allocation et de Libération
 t_pixel **bmp24_allocateDataPixels(int width, int height_abs) {
     if (width <= 0 || height_abs <= 0) {
         fprintf(stderr, "bmp24_allocateDataPixels: Dimensions invalides (W:%d x H_abs:%d).\n", width, height_abs);
@@ -57,7 +50,7 @@ t_pixel **bmp24_allocateDataPixels(int width, int height_abs) {
         return NULL;
     }
     for (int i = 0; i < height_abs; ++i) {
-        pixels[i] = (t_pixel *)calloc((size_t)width, sizeof(t_pixel)); // calloc initialise à zéro
+        pixels[i] = (t_pixel *)calloc((size_t)width, sizeof(t_pixel));
         if (!pixels[i]) {
             perror("bmp24_allocateDataPixels: Erreur calloc pour une ligne de pixels");
             for (int j = 0; j < i; ++j) {
@@ -75,9 +68,9 @@ void bmp24_freeDataPixels(t_pixel **pixels, int height_abs) {
         return;
     }
     for (int i = 0; i < height_abs; ++i) {
-        if (pixels[i]) { // Vérifier avant de free, même si calloc a été utilisé
+        if (pixels[i]) {
             free(pixels[i]);
-            pixels[i] = NULL; // Bonne pratique
+            pixels[i] = NULL;
         }
     }
     free(pixels);
@@ -98,17 +91,17 @@ t_bmp24 *bmp24_allocate(int width, int height_signed, int colorDepth) {
         perror("bmp24_allocate: Erreur malloc pour t_bmp24");
         return NULL;
     }
-    memset(img, 0, sizeof(t_bmp24)); // Initialiser toute la structure à zéro
+    memset(img, 0, sizeof(t_bmp24));
 
     int height_abs = abs(height_signed);
     img->data = bmp24_allocateDataPixels(width, height_abs);
     if (!img->data) {
-        free(img); // bmp24_allocateDataPixels affiche déjà une erreur
+        free(img);
         return NULL;
     }
 
     img->width = width;
-    img->height = height_signed; // Conserver le signe original
+    img->height = height_signed;
     img->colorDepth = colorDepth;
 
     // Initialiser les headers pour une NOUVELLE image (sera écrasé lors du chargement)
@@ -119,16 +112,16 @@ t_bmp24 *bmp24_allocate(int width, int height_signed, int colorDepth) {
 
     img->info_header.size = INFO_HEADER_SIZE;
     img->info_header.width = width;
-    img->info_header.height = height_signed; // Conserver le signe original
+    img->info_header.height = height_signed;
     img->info_header.planes = 1;
     img->info_header.bits_per_pixel = (uint16_t)colorDepth;
-    img->info_header.compression = 0; // BI_RGB
+    img->info_header.compression = 0;
 
     uint32_t row_stride_bytes = ((uint32_t)width * (img->info_header.bits_per_pixel / 8) + 3) & ~3u;
     img->info_header.image_size = row_stride_bytes * (uint32_t)height_abs;
 
-    img->info_header.x_pixels_per_meter = 2835; // Approx 72 DPI
-    img->info_header.y_pixels_per_meter = 2835; // Approx 72 DPI
+    img->info_header.x_pixels_per_meter = 2835;
+    img->info_header.y_pixels_per_meter = 2835;
     img->info_header.ncolors = 0;
     img->info_header.importantcolors = 0;
 
@@ -146,7 +139,7 @@ void bmp24_free(t_bmp24 *img) {
     }
 }
 
-// ----- Lecture et Écriture d'Image (PDF Section 2.4) -----
+// Lecture et Écriture d'Image
 t_bmp24 *bmp24_loadImage(const char *filename) {
     FILE *file = fopen(filename, "rb");
     if (!file) {
@@ -180,7 +173,7 @@ t_bmp24 *bmp24_loadImage(const char *filename) {
     }
 
     // 4. Valider t_bmp_info
-    if (info_h_read.size < INFO_HEADER_SIZE) { // Peut être > 40 pour des versions plus récentes, mais les champs de base sont les mêmes
+    if (info_h_read.size < INFO_HEADER_SIZE) {
         fprintf(stderr, "bmp24_loadImage: Taille DIB header (%u) incorrecte, attendu au moins %d.\n", info_h_read.size, INFO_HEADER_SIZE);
         fclose(file); return NULL;
     }
@@ -200,13 +193,12 @@ t_bmp24 *bmp24_loadImage(const char *filename) {
     // 5. Allouer la structure t_bmp24
     t_bmp24 *img = bmp24_allocate(info_h_read.width, info_h_read.height, info_h_read.bits_per_pixel);
     if (!img) {
-        fclose(file); return NULL; // bmp24_allocate affiche déjà un message
+        fclose(file); return NULL;
     }
 
     // 6. Copier les headers lus dans la structure img
     img->header = file_h_read;
     img->info_header = info_h_read;
-    // Les champs de commodité img->width, img->height, img->colorDepth sont déjà corrects grâce à bmp24_allocate.
 
     // 7. Se positionner pour lire les données pixel
     if (fseek(file, (long)img->header.offset, SEEK_SET) != 0) {
@@ -218,15 +210,14 @@ t_bmp24 *bmp24_loadImage(const char *filename) {
     uint32_t bytes_per_pixel = img->info_header.bits_per_pixel / 8;
     uint32_t row_padded_size = ((uint32_t)img->width * bytes_per_pixel + 3) & ~3u;
 
-    // Vérification optionnelle: image_size du header vs calculé
     int height_abs_val = abs(img->height); // Utiliser la valeur absolue pour les calculs de taille
     uint32_t calculated_image_size = row_padded_size * (uint32_t)height_abs_val;
-    if (img->info_header.image_size == 0) { // image_size peut être 0 pour BI_RGB
-        img->info_header.image_size = calculated_image_size; // Le mettre à jour dans notre structure
+    if (img->info_header.image_size == 0) {
+        img->info_header.image_size = calculated_image_size;
     } else if (img->info_header.image_size != calculated_image_size) {
         fprintf(stderr, "bmp24_loadImage: Avertissement - image_size du header (%u) ne correspond pas à la taille calculée (%u).\n",
                 img->info_header.image_size, calculated_image_size);
-        // On se fie à notre calcul pour la lecture, mais on garde l'info originale.
+
     }
 
 
@@ -245,9 +236,7 @@ t_bmp24 *bmp24_loadImage(const char *filename) {
             free(row_buffer); bmp24_free(img); fclose(file); return NULL;
         }
 
-        // img->data est stocké top-down.
-        // Si img->info_header.height > 0 (fichier bottom-up) : la ligne i du fichier va à data[height_abs_val - 1 - i]
-        // Si img->info_header.height < 0 (fichier top-down)  : la ligne i du fichier va à data[i]
+
         int storage_y = (img->info_header.height > 0) ? (height_abs_val - 1 - i) : i;
 
         for (int x = 0; x < img->width; ++x) {
@@ -289,7 +278,7 @@ void bmp24_saveImage(const char *filename, t_bmp24 *img) {
     t_bmp_info info_h_write;
 
     int image_width = img->width;
-    int image_height_abs = abs(img->height); // Hauteur absolue pour les calculs et boucles
+    int image_height_abs = abs(img->height);
 
     // 1. Initialiser t_bmp_header (file_h_write)
     file_h_write.type = BMP_TYPE_SIGNATURE;
@@ -300,21 +289,21 @@ void bmp24_saveImage(const char *filename, t_bmp24 *img) {
     // 2. Initialiser t_bmp_info (info_h_write)
     info_h_write.size = INFO_HEADER_SIZE;
     info_h_write.width = image_width;
-    info_h_write.height = image_height_abs; // Hauteur positive pour l'écriture bottom-up standard
+    info_h_write.height = image_height_abs;
     info_h_write.planes = 1;
     info_h_write.bits_per_pixel = DEFAULT_COLOR_DEPTH_24;
-    info_h_write.compression = 0; // BI_RGB (non compressé)
+    info_h_write.compression = 0;
 
-    // Valeurs par défaut pour les champs de résolution et couleurs (peuvent être celles de img->info_header si lues)
-    info_h_write.x_pixels_per_meter = img->info_header.x_pixels_per_meter != 0 ? img->info_header.x_pixels_per_meter : 2835; // ~72 DPI
-    info_h_write.y_pixels_per_meter = img->info_header.y_pixels_per_meter != 0 ? img->info_header.y_pixels_per_meter : 2835; // ~72 DPI
-    info_h_write.ncolors = 0;           // Pas de palette pour 24bpp
-    info_h_write.importantcolors = 0;   // Toutes les couleurs sont importantes
+    // Valeurs par défaut pour les champs de résolution et couleurs
+    info_h_write.x_pixels_per_meter = img->info_header.x_pixels_per_meter != 0 ? img->info_header.x_pixels_per_meter : 2835;
+    info_h_write.y_pixels_per_meter = img->info_header.y_pixels_per_meter != 0 ? img->info_header.y_pixels_per_meter : 2835;
+    info_h_write.ncolors = 0;
+    info_h_write.importantcolors = 0;
 
     // 3. Calculer les tailles
-    uint32_t bytes_per_pixel = info_h_write.bits_per_pixel / 8; // Devrait être 3
+    uint32_t bytes_per_pixel = info_h_write.bits_per_pixel / 8;
     uint32_t row_data_size = (uint32_t)image_width * bytes_per_pixel;
-    uint32_t row_padded_size_write = (row_data_size + 3) & ~3u; // Alignée sur 4 octets
+    uint32_t row_padded_size_write = (row_data_size + 3) & ~3u;
 
     info_h_write.image_size = row_padded_size_write * (uint32_t)image_height_abs;
     file_h_write.size = file_h_write.offset + info_h_write.image_size;
@@ -329,8 +318,7 @@ void bmp24_saveImage(const char *filename, t_bmp24 *img) {
         fclose(file); return;
     }
 
-    // 5. Se positionner pour l'écriture des données pixel (normalement déjà là, mais fseek est plus sûr)
-    // Note: ftell() après les fwrite des headers devrait donner file_h_write.offset
+    // 5. Se positionner pour l'écriture des données pixel
     if (fseek(file, (long)file_h_write.offset, SEEK_SET) != 0) {
         perror("bmp24_saveImage: Erreur fseek vers offset données pixel");
         fclose(file); return;
@@ -344,8 +332,6 @@ void bmp24_saveImage(const char *filename, t_bmp24 *img) {
 
     // 6. Écrire les données pixel (bottom-up, BGR)
     for (int i = 0; i < image_height_abs; ++i) {
-        // Ligne 'i' du fichier (0 = première ligne en bas du fichier)
-        // correspond à la ligne (image_height_abs - 1 - i) de img->data (top-down)
         int source_y = image_height_abs - 1 - i;
 
         // Remplir le buffer de ligne avec les données BGR
@@ -390,10 +376,7 @@ void bmp24_printInfo(t_bmp24 *img) {
     printf("  Info Header (t_bmp_info):\n");
     printf("    Header Size: %u octets\n", img->info_header.size);
     printf("    Width: %d px\n", img->info_header.width);
-    printf("    Height: %d px (%s dans fichier si >0, %s en mémoire)\n",
-           img->info_header.height,
-           (img->info_header.height > 0 ? "bottom-up" : "top-down"),
-           "toujours top-down");
+    printf("    Height: %d px (%s dans fichier si >0, %s en mémoire)\n",img->info_header.height,(img->info_header.height > 0 ? "bottom-up" : "top-down"),"toujours top-down");
     printf("    Planes: %u\n", img->info_header.planes);
     printf("    Bits/pixel: %u\n", img->info_header.bits_per_pixel);
     printf("    Compression: %u (%s)\n", img->info_header.compression, (img->info_header.compression == 0 ? "BI_RGB" : "Compressé/Autre"));
@@ -409,7 +392,7 @@ void bmp24_printInfo(t_bmp24 *img) {
     printf("--------------------------------------\n");
 }
 
-// ----- Traitement d'Image (PDF Section 2.5) -----
+// Traitement d'Image
 uint8_t clamp_pixel_value(int value) {
     if (value < 0) return 0;
     if (value > 255) return 255;
@@ -435,16 +418,10 @@ void bmp24_grayscale(t_bmp24 *img) {
     int w = img->width;
     for (int y = 0; y < h; ++y) {
         for (int x = 0; x < w; ++x) {
-            // Utiliser des flottants pour plus de précision avec les poids standards (luminosité)
-            // ou la moyenne simple comme dans le code original.
-            // Moyenne simple:
             uint8_t gray = (uint8_t)(((unsigned int)img->data[y][x].red +
                                       (unsigned int)img->data[y][x].green +
                                       (unsigned int)img->data[y][x].blue) / 3);
-            // Poids de luminosité (plus commun):
-            // uint8_t gray = (uint8_t)(0.299f * img->data[y][x].red +
-            //                          0.587f * img->data[y][x].green +
-            //                          0.114f * img->data[y][x].blue);
+
             img->data[y][x].red = gray;
             img->data[y][x].green = gray;
             img->data[y][x].blue = gray;
@@ -469,7 +446,6 @@ void bmp24_threshold(t_bmp24 *img, int threshold_val) {
     if (!img || !img->data) return;
     int h = abs(img->height);
     int w = img->width;
-    // Clamp threshold_val pour s'assurer qu'il est dans [0, 255]
     if (threshold_val < 0) threshold_val = 0;
     if (threshold_val > 255) threshold_val = 255;
 
@@ -486,7 +462,7 @@ void bmp24_threshold(t_bmp24 *img, int threshold_val) {
     }
 }
 
-// ----- Filtres de Convolution (PDF Section 2.6) -----
+//  Filtres de Convolution
 void bmp24_apply_filter_generic(t_bmp24 *img, float kernel[3][3], float factor, int bias) {
     if (!img || !img->data) return;
     int h = abs(img->height);
@@ -508,7 +484,7 @@ void bmp24_apply_filter_generic(t_bmp24 *img, float kernel[3][3], float factor, 
         memcpy(original_data[y_copy], img->data[y_copy], (size_t)w * sizeof(t_pixel));
     }
 
-    // Appliquer le filtre (en ignorant les bords pour simplifier)
+    // Appliquer le filtre
     for (int y = 1; y < h - 1; ++y) {
         for (int x = 1; x < w - 1; ++x) {
             float sum_r = 0.0f, sum_g = 0.0f, sum_b = 0.0f;
@@ -560,9 +536,9 @@ void bmp24_sharpen(t_bmp24 *img) {
     bmp24_apply_filter_generic(img, k, 1.0f, 0);
 }
 
-// ----- NOUVEAU pour la Partie 3 : Égalisation d'Histogramme Couleur -----
+// Égalisation d'Histogramme Couleur
 
-// Fonction statique pour convertir un pixel RGB en YUV (Formule 3.3, PDF page 31)
+// Fonction statique pour convertir un pixel RGB en YUV
 static t_yuv convert_rgb_to_yuv(t_pixel rgb) {
     t_yuv yuv;
     float r_float = (float)rgb.red;
@@ -576,7 +552,7 @@ static t_yuv convert_rgb_to_yuv(t_pixel rgb) {
     return yuv;
 }
 
-// Fonction statique pour convertir un pixel YUV en RGB (Formule 3.4, PDF page 31)
+// Fonction statique pour convertir un pixel YUV en RGB
 static t_pixel convert_yuv_to_rgb(t_yuv yuv) {
     t_pixel rgb;
     float r_float, g_float, b_float;
@@ -646,13 +622,13 @@ void bmp24_equalize(t_bmp24 *img) {
         cdf_y[i] = cdf_y[i - 1] + histogram_y[i];
     }
 
-    // Trouver cdf_min_y (la plus petite valeur non-nulle de la CDF)
-    unsigned int cdf_min_y = 0; // Sera la CDF de la plus basse intensité Y présente dans l'image.
+    // Trouver cdf_min_y
+    unsigned int cdf_min_y = 0;
     // Si l'image est complètement noire, cdf_min_y pourrait ne pas être trouvée (rester 0) ou être total_pixels
     // si tous les pixels sont de valeur Y=0.
     for (int i = 0; i < 256; ++i) {
         if (histogram_y[i] > 0) { // On cherche la première intensité qui existe
-            cdf_min_y = cdf_y[i]; // La CDF jusqu'à cette intensité
+            cdf_min_y = cdf_y[i];
             break;
         }
     }
@@ -660,25 +636,15 @@ void bmp24_equalize(t_bmp24 *img) {
 
     // Créer la LUT (Look-Up Table) pour l'égalisation de Y
     unsigned char lut_y[256];
-    // Le dénominateur doit être (N - cdf_min) selon la formule 3.2 page 30, où N est total_pixels.
-    // Cependant, si tous les pixels ont la même intensité, ou si cdf_min est très proche de total_pixels,
-    // le dénominateur (total_pixels - cdf_min_y) peut être 0 ou petit.
     float denominator = (float)(total_pixels - cdf_min_y);
 
     if (denominator <= 0) { // Cas où cdf_min_y >= total_pixels (ex: image monochrome, ou presque)
-        // ou image avec uniquement des pixels de valeur Y=0 (total_pixels = 0 a été traité plus tôt)
         for (int i = 0; i < 256; ++i) {
             lut_y[i] = (unsigned char)i; // Ne rien changer
         }
     } else {
         for (int i = 0; i < 256; ++i) {
-            // La formule H(v) = round(((CDF(v) - CDF_min) / (N - CDF_min)) * (L-1))
-            // où L-1 = 255.
-            // Si CDF(v) < CDF_min, le numérateur serait négatif.
-            // Cela peut arriver si cdf_min_y est la CDF de la plus basse intensité Y > 0, et 'i' est une intensité Y=0.
-            // Dans ce cas, ces pixels devraient rester à la valeur la plus basse (0).
-            if (cdf_y[i] < cdf_min_y) { // Techniquement, ne devrait pas arriver si cdf_min_y est la cdf[plus_basse_intensite_existante]
-                // Mais si on prend cdf_min comme la première cdf non nulle.
+            if (cdf_y[i] < cdf_min_y) {
                 lut_y[i] = 0; // Mapper à la valeur la plus basse
             } else {
                 float new_y_float = roundf(((float)cdf_y[i] - cdf_min_y) / denominator * 255.0f);
