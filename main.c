@@ -81,7 +81,14 @@ void appliquer_filtre(t_bmp8 *img) {
         printf("1. Appliquer un négatif\n");
         printf("2. Modifier la luminosité\n");
         printf("3. Binariser (seuillage)\n");
-        printf("4. Retour au menu principal\n");
+        printf("4. Flou (Box Blur)\n");
+        printf("5. Flou gaussien\n");
+        printf("6. Contour\n");
+        printf("7. Relief (Emboss)\n");
+        printf("8. Accentuation (Sharpen)\n");
+        printf("9. Afficher l'histogramme\n");
+        printf("10. Égaliser l'histogramme\n");
+        printf("11. Retour au menu principal\n");
         printf(">>> Votre choix : ");
 
         if (scanf("%d", &choix_filtre) != 1) {
@@ -112,6 +119,33 @@ void appliquer_filtre(t_bmp8 *img) {
                 break;
             }
             case 4:
+                bmp8_boxBlur(img);
+                printf("Flou appliqué !\n");
+                break;
+            case 5:
+                bmp8_gaussianBlur(img);
+                printf("Flou gaussien appliqué !\n");
+                break;
+            case 6:
+                bmp8_outline(img);
+                printf("Contour appliqué !\n");
+                break;
+            case 7:
+                bmp8_emboss(img);
+                printf("Relief appliqué !\n");
+                break;
+            case 8:
+                bmp8_sharpen(img);
+                printf("Accentuation appliquée !\n");
+                break;
+            case 9:
+                bmp8_printHistogram(img);
+                break;
+            case 10:
+                bmp8_equalizeHistogram(img);
+                printf("Histogramme égalisé !\n");
+                break;
+            case 11:
                 printf("Retour au menu principal.\n");
                 return;
             default:
