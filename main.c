@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 #include "bmp8.h"
 #include "bmp24.h"
 
@@ -18,13 +17,13 @@ void vider_buffer_stdin() {
 // Fonction principale du programme
 // Gère le menu principal, le chargement/sauvegarde d'images et l'application des filtres
 int main() {
-    t_bmp8 *img8 = NULL; // Pointeur pour image 8-bits
-    t_bmp24 *img24 = NULL; // Pointeur pour image 24-bits
-    int current_image_type = 0; // 0=aucune, 8=8bits, 24=24bits
-    int choix; // Stockage du choix de menu
-    char chemin[FILENAME_MAX]; // Chemin des fichiers
+    t_bmp8 *img8 = NULL;
+    t_bmp24 *img24 = NULL;
+    int current_image_type = 0;
+    int choix;
+    char chemin[FILENAME_MAX];
 
-    // Message de bienvenue des familles
+    // Message de bienvenue
     printf("Bienvenue dans le programme de Traitement d'Images en C !\n");
     printf("Projet TI202 - EFREI Paris \n");
 
@@ -137,7 +136,6 @@ int main() {
                 }
                 printf("Chemin pour sauvegarder l'image : ");
                 if (scanf("%s", chemin) == 1) {
-                    // vider_buffer_stdin();
                     if (chemin[0] == '\0') { // Vérifier si la chaîne est vide
                         printf("Chemin de sauvegarde vide. Opération annulée.\n");
                         break;
